@@ -1,0 +1,90 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.*;
+
+public class Submission{
+  public static void main(String[] args) throws Exception {
+    BufferedReader fh =
+        new BufferedReader(new FileReader("iot.txt"));
+    //First line contains the language names
+    String s = fh.readLine(); 
+    List<String> langs =
+        new ArrayList<>(Arrays.asList(s.split("\t")));
+    langs.remove(0);  //Throw away the first word - "week"
+    Map<String,HashMap<String,Integer>> iot = new TreeMap<>();
+    while ((s=fh.readLine())!=null)
+    {
+      String [] wrds = s.split("\t");
+      HashMap<String,Integer> interest = new HashMap<>();
+      for(int i=0;i<langs.size();i++)
+        interest.put(langs.get(i), Integer.parseInt(wrds[i+1]));
+      iot.put(wrds[0], interest);
+    }
+    fh.close();
+    HashMap<Integer,HashMap<String,HashMap<String,Integer>>>
+      regionsByYear = new HashMap<>();
+    for (int i=2004;i<2016;i++)
+    {
+      BufferedReader fh1 =
+          new BufferedReader(new FileReader(i+".txt"));
+      String s1 = fh1.readLine(); //Throw away the first line
+      HashMap<String,HashMap<String,Integer>> year = new HashMap<>();
+      while ((s1=fh1.readLine())!=null)
+      {
+        String [] wrds = s1.split("\t");
+        HashMap<String,Integer>langMap = new HashMap<>();
+        for(int j=1;j<wrds.length;j++){
+          langMap.put(langs.get(j-1), Integer.parseInt(wrds[j]));
+        }
+        year.put(wrds[0],langMap);
+      }
+      regionsByYear.put(i,year);
+      fh1.close();
+    }
+    
+
+// Question 1 Number of weeks 
+    for(String wk:iot.keySet()){
+      System.out.println("Question 1: The number of weeks covered to get data is: "+iot.values().size());
+      break;
+    }
+
+//Question 2: Interest in JavaScript in 2014-10-12 - 2014-10-18
+    System.out.println("Question 2: The interest in JavaScript between 2014-10-12 to 2014-10-18 is: "
+        +iot.get("2014-10-12 - 2014-10-18").get("JavaScript"));
+
+//Question 3: First week java interest goes below 50%
+    for(String wk:iot.keySet()){
+      if(iot.get(wk).get("java")<50){
+        System.out.printf("Question 3: The first week that java dips below 50 percent: %s\n", wk);
+        break;
+      }
+    }
+
+//Question 4: Interest in c++>c# week count: (170)
+    int acc = 0;
+    for(String wk:iot.keySet()){
+      if(iot.get(wk).get("c++")>iot.get(wk).get("c#")){
+        acc++;  
+      }
+    }
+    System.out.println("Question 4: Amount of weeks interest in c++ > c#: "+ acc);
+
+//Question 5: How many regions have never demonstrated any interest in Python? 
+    List<String> pythonCountries = new ArrayList<String>();
+    for(String country:regionsByYear.get(2014).keySet()){
+      pythonCountries.add(country);
+    }
+    for(int year:regionsByYear.keySet()){
+      for(String countries:regionsByYear.get(year).keySet()){
+      if (regionsByYear.get(year).get(countries).get("python")>0){
+        if (pythonCountries.contains(countries)){
+          int index = pythonCountries.indexOf(countries);
+          pythonCountries.remove(index);
+          }
+        }
+      }
+    }
+    System.out.printf("Question 5: Amount of countries which never displayed interest in Python is: %s\n", pythonCountries.size());
+  }
+}
